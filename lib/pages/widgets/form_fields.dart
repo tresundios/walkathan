@@ -129,3 +129,44 @@ class NameFormField extends StatelessWidget {
     );
   }
 }
+
+class GenderFormField extends StatelessWidget {
+  const GenderFormField({
+    super.key,
+    required this.genderController,
+  });
+
+  final ValueNotifier<String?> genderController;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<String?>(
+      valueListenable: genderController,
+      builder: (context, selectedGender, _) {
+        return DropdownButtonFormField<String>(
+          value: selectedGender,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            filled: true,
+            labelText: 'Gender',
+            prefixIcon: Icon(Icons.person),
+          ),
+          items: const [
+            DropdownMenuItem(value: 'male', child: Text('Male')),
+            DropdownMenuItem(value: 'female', child: Text('Female')),
+            DropdownMenuItem(value: 'other', child: Text('Other')),
+          ],
+          onChanged: (String? value) {
+            genderController.value = value;
+          },
+          validator: (String? value) {
+            if (value == null || value.isEmpty) {
+              return 'Please select a gender';
+            }
+            return null;
+          },
+        );
+      },
+    );
+  }
+}

@@ -21,6 +21,7 @@ class Signup extends _$Signup {
     required String name,
     required String email,
     required String password,
+    required String gender,
   }) async {
     state = const AsyncLoading<void>();
     final key = _key;
@@ -28,7 +29,7 @@ class Signup extends _$Signup {
     final newState = await AsyncValue.guard<void>(
       () => ref
           .read(authRepositoryProvider)
-          .signup(name: name, email: email, password: password),
+          .signup(name: name, email: email, password: password, gender: gender),
     );
 
     if (key == _key) {

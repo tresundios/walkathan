@@ -9,7 +9,7 @@ class AppUser with _$AppUser {
   const factory AppUser({
     @Default('') String id,
     @Default('') String name,
-    @Default('') String email,
+    @Default('') String email
   }) = _AppUser;
 
   factory AppUser.fromDoc(DocumentSnapshot appUserDoc) {

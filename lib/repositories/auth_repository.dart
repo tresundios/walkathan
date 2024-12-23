@@ -10,6 +10,7 @@ class AuthRepository {
     required String name,
     required String email,
     required String password,
+    required String gender,
   }) async {
     try {
       final userCredential = await fbAuth.createUserWithEmailAndPassword(
@@ -22,6 +23,7 @@ class AuthRepository {
       await usersCollection.doc(signedInUser.uid).set({
         'name': name,
         'email': email,
+        'gender': gender,
       });
     } catch (e) {
       throw handleException(e);

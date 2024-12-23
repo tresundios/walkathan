@@ -75,6 +75,16 @@ class HomePage extends ConsumerWidget {
                     'Change Password',
                     style: TextStyle(fontSize: 20),
                   ),
+                ),
+                const SizedBox(height: 40),
+                OutlinedButton(
+                  onPressed: () {
+                    GoRouter.of(context).go('/walkHome/$uid');
+                  },
+                  child: const Text(
+                    'Walkathon Home',
+                    style: TextStyle(fontSize: 20),
+                  ),
                 )
               ],
             ),

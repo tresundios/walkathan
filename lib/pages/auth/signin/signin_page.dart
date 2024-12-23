@@ -73,7 +73,16 @@ class _SigninPageState extends ConsumerState<SigninPage> {
                 shrinkWrap: true,
                 reverse: true,
                 children: [
-                  const FlutterLogo(size: 150),
+                  Center(
+                    child: Text(
+                      'TEF Walkathan',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 20.0),
                   EmailFormField(emailController: _emailController),
                   const SizedBox(height: 20.0),

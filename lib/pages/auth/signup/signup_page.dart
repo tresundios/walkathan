@@ -22,12 +22,14 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _genderController = ValueNotifier<String?>(null);
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _genderController.dispose();
     super.dispose();
   }
 
@@ -44,6 +46,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           name: _nameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
+          gender: _genderController.value.toString()
         );
   }
 
@@ -92,6 +95,8 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     passwordController: _passwordController,
                     labelText: 'Confirm password',
                   ),
+                  const SizedBox(height: 20.0),
+                  GenderFormField(genderController: _genderController),
                   const SizedBox(height: 20.0),
                   CustomFilledButton(
                     onPressed: signupState.maybeWhen(
