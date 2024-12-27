@@ -7,7 +7,7 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  usePathUrlStrategy();
+  //usePathUrlStrategy();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -21,6 +21,9 @@ void main() async {
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
+
+  // Initialize GoRouter
+  final _router = AppRouter.router;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
