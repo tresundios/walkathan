@@ -85,6 +85,16 @@ class HomePage extends ConsumerWidget {
                     'Walkathon Home',
                     style: TextStyle(fontSize: 20),
                   ),
+                ),
+                const SizedBox(height: 40),
+                OutlinedButton(
+                  onPressed: () {
+                    GoRouter.of(context).go('/learderBoard');
+                  },
+                  child: const Text(
+                    'Leader Board',
+                    style: TextStyle(fontSize: 20),
+                  ),
                 )
               ],
             ),

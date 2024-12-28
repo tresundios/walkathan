@@ -8,4 +8,5 @@ class RouteNames {
   static const splash = 'splash';
   static const firebaseError = 'firebaseError';
   static const walkHome = 'walkHome';
+  static const leaderBoard = 'leaderBoard';
 }

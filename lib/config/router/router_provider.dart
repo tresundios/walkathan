@@ -9,6 +9,7 @@ import '../../pages/auth/signup/signup_page.dart';
 import '../../pages/auth/verify_email/verify_email_page.dart';
 import '../../pages/content/change_password/change_password_page.dart';
 import '../../pages/content/walk_home/walk_home_page.dart';
+import '../../pages/content/leader_board/leader_board_page.dart';
 import '../../pages/content/home/home_page.dart';
 import '../../pages/page_not_found.dart';
 import '../../pages/splash/firebase_error_page.dart';
@@ -120,7 +121,15 @@ GoRouter router(RouterRef ref) {
           return WalkHomePage(userId: userId);
         },
       ),
+      GoRoute(
+        path: '/leaderBoard',
+        name: RouteNames.leaderBoard,
+        builder: (context, state) {
+          return LeaderBoardPage();
+        },
+      ),
     ],
+    
     errorBuilder: (context, state) {
       return PageNotFound(
         errorMessage: state.error.toString(),

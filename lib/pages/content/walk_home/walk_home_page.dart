@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:pedometer/pedometer.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import '../../../repositories/auth_repository_provider.dart';
+import '../../../utils/error_dialog.dart';
+import '../../../models/custom_error.dart';
 import './pedometer_provider.dart';
+import '../home/home_provider.dart';
+import 'package:go_router/go_router.dart';
 
 // Provider for managing the user's steps. 
 final userStepsProvider = StateProvider<int>((ref) => 0); 
@@ -17,6 +21,160 @@ class WalkHomePage extends ConsumerStatefulWidget {
   @override
   _WalkHomePageState createState() => _WalkHomePageState();
 }
+
+class _WalkHomePageState extends ConsumerState<WalkHomePage> {
+  
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(pedometerProvider(widget.userId).notifier).fetchInitialState();
+    });
+  }
+  
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    final pedometerState = ref.watch(pedometerProvider(widget.userId));
+    final notifier = ref.read(pedometerProvider(widget.userId).notifier);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Walkathan Home'),
+        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            onPressed: () async {
+              try {
+                await ref.read(authRepositoryProvider).signout();
+              } on CustomError catch (e) {
+                if (!context.mounted) return;
+                errorDialog(context, e);
+              }
+            },
+            icon: const Icon(Icons.logout),
+          ),
+          IconButton(
+            onPressed: () {
+              ref.invalidate(profileProvider);
+            },
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: Align(
+      alignment: FractionalOffset.center,
+      child:      
+      Container(
+        padding: EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            // Step Count Display
+            Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Steps Taken',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      pedometerState.count.toString(),
+                      style: TextStyle(fontSize: 48, color: Colors.blue),
+                    ),
+                    Text(
+                      pedometerState.lastUpdate != null 
+                        ? 'Last updated: ${DateFormat('HH:mm').format(pedometerState.lastUpdate!)}' 
+                        : 'No updates yet',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            
+            // Walking Status Display
+            Card(
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Pedestrian Status',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 10),
+                    Icon(
+                      pedometerState.status == 'walking'
+                          ? Icons.directions_walk
+                          : pedometerState.status == 'stopped'
+                              ? Icons.accessibility_new
+                              : Icons.error,
+                      size: 80,
+                      color: pedometerState.status == 'walking' 
+                          ? Colors.green 
+                          : pedometerState.status == 'stopped' 
+                              ? Colors.blue 
+                              : Colors.red,
+                    ),
+                    Text(
+                      pedometerState.status,
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: pedometerState.status == 'walking' || pedometerState.status == 'stopped'
+                            ? Colors.black
+                            : Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+                OutlinedButton(
+                  onPressed: () {
+                    GoRouter.of(context).go('/home');
+                  },
+                  child: const Text(
+                    'Home',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                )
+                ,
+                const SizedBox(height: 40),
+                OutlinedButton(
+                  onPressed: () {
+                    GoRouter.of(context).go('/leaderboard');
+                  },
+                  child: const Text(
+                    'Leader Board',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                )
+
+
+
+            // Additional UI elements for other functionalities if needed
+          ],
+        ),
+      ),
+    )
+      
+      
+      
+ 
+    );
+  }
+}
+
 /*
 class _WalkHomePageState extends ConsumerState<WalkHomePage> {
   StreamSubscription<StepCount>? _subscription;
@@ -283,113 +441,3 @@ class _WalkHomePageState extends ConsumerState<WalkHomePage> {
   }
 }
 */
-class _WalkHomePageState extends ConsumerState<WalkHomePage> {
-  
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(pedometerProvider(widget.userId).notifier).fetchInitialStepCount();
-    });
-  }
-  
-  // End walk
-  void _endWalk() async { 
-    ref.read(walkActiveProvider.notifier).state = false;
-    //_stopPedometer(); // Stop listening to step count
-    
-    // Save final step count to Firest
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    final pedometerState = ref.watch(pedometerProvider(widget.userId));
-    final notifier = ref.read(pedometerProvider(widget.userId).notifier);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Pedometer Example'),
-        backgroundColor: Colors.blue,
-      ),
-      body: Container(
-        padding: EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // Step Count Display
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'Steps Taken',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      pedometerState.steps,
-                      style: TextStyle(fontSize: 48, color: Colors.blue),
-                    ),
-                    Text(
-                      pedometerState.lastUpdate != null 
-                        ? 'Last updated: ${DateFormat('HH:mm').format(pedometerState.lastUpdate!)}' 
-                        : 'No updates yet',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    ElevatedButton(
-                      onPressed: _endWalk, 
-                      child: Text('Save Today\'s Steps'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            
-            // Walking Status Display
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Text(
-                      'Pedestrian Status',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10),
-                    Icon(
-                      pedometerState.status == 'walking'
-                          ? Icons.directions_walk
-                          : pedometerState.status == 'stopped'
-                              ? Icons.accessibility_new
-                              : Icons.error,
-                      size: 80,
-                      color: pedometerState.status == 'walking' 
-                          ? Colors.green 
-                          : pedometerState.status == 'stopped' 
-                              ? Colors.blue 
-                              : Colors.red,
-                    ),
-                    Text(
-                      pedometerState.status,
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: pedometerState.status == 'walking' || pedometerState.status == 'stopped'
-                            ? Colors.black
-                            : Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Additional UI elements for other functionalities if needed
-          ],
-        ),
-      ),
-    );
-  }
-}

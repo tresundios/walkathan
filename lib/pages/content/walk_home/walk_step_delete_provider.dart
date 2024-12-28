@@ -1,5 +1,6 @@
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../repositories/walk_step_repository.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final walkStepRepositoryProvider = Provider<WalkStepRepository>((ref) {
   return WalkStepRepository();
@@ -14,5 +15,6 @@ final saveWalkStepsProvider = Provider.family<void, Map<String, dynamic>>((ref, 
   final walkStepRepository = ref.read(walkStepRepositoryProvider);
   final userId = data['userId'];
   final steps = data['steps'];
-  walkStepRepository.saveWalkSteps(userId, steps);
+  final count = data['count'];
+  walkStepRepository.saveWalkSteps(userId, steps, count);
 });
