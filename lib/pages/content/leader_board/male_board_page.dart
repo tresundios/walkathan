@@ -16,13 +16,12 @@ class MaleBoardPage extends ConsumerStatefulWidget {
 }
 
 class _MaleBoardPageState extends ConsumerState<MaleBoardPage> {
-  final numberOfDays = 3;
 
   @override
   Widget build(BuildContext context) {
     final uid = fbAuth.currentUser!.uid;
     final profileState = ref.watch(profileProvider(uid));
-    final leaderBoardState = ref.watch(leaderboardDataProvider({'gender': 'male', 'limit': numberOfDays}));
+    final leaderBoardState = ref.watch(leaderboardMaleDataProvider);
 
     return Scaffold(
       appBar: AppBar(

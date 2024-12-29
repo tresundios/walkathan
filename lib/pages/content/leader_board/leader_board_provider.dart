@@ -4,16 +4,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../constants/firebase_constants.dart';
 
 class LeaderboardRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  Future<List<Map<String, dynamic>>> fetchLeaderboard() async {
-    // Example query to fetch leaderboard data
-    final querySnapshot = await _firestore.collection('leaderboard').orderBy('score', descending: true).limit(10).get();
-    return querySnapshot.docs.map((doc) => doc.data()).toList();
-
-
-    
-  }
 
   // Helper method to generate a date key in YYYY-MM-DD format
   String _getDateKey(DateTime date) {
@@ -25,109 +15,186 @@ class LeaderboardRepository {
   String _getDateKeyGiven(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
-
-  Future<int> getUserSteps(String userId, int limit) async {
+  
+  Future<List<Map<String, dynamic>>> getTopMaleUsersBySteps() async {
+    String filterGender = 'male';
+    int limit = 30;
     try {
-      int totalSteps = 0;
       final DateTime today = DateTime.now();
-    final DateTime thirtyDaysAgo = today.subtract(Duration(days: limit-1));
+      final DateTime thirtyDaysAgo = today.subtract(Duration(days: limit - 1 ));
 
-    List<String> last30Days = List.generate(limit, (index) {
-      DateTime date = thirtyDaysAgo.add(Duration(days: index));
-      return _getDateKeyGiven(date); // Ensure this matches Firestore document IDs
-    });
-      for (String dateKey in last30Days) {
-        int localStep = 0;
-        try {
+      // Generate date keys for each day in the last 30 days
+      List<String> last30Days = List.generate(limit , (index) {
+        DateTime date = thirtyDaysAgo.add(Duration(days: index));
+        return _getDateKeyGiven(date);
+      });
+
+      List<Map<String, dynamic>> usersWithSteps = [];
+
+      // Query all users
+      QuerySnapshot userSnapshot = await usersCollection.where('gender', isEqualTo: filterGender).get();
+      
+      for (var userDoc in userSnapshot.docs) {
+        int totalSteps = 0;
+        String userId = userDoc.id;
+
+        // Query daily steps for each user
+        for (String dateKey in last30Days) {
+          int localStep = 0;
           DocumentSnapshot stepSnapshot = await walkStepsCollection
               .doc(userId)
               .collection('daily_steps')
               .doc(dateKey)
               .get();
+          
           if (stepSnapshot.exists) {
-            final data = stepSnapshot.data() as Map<String, dynamic>;
-            if (data.containsKey('count')) {
-              localStep = int.tryParse(data['count']?.toString() ?? '0') ?? 0;
-              totalSteps += localStep;
-            }
-          }
-        } catch (e) {
-          print('Error fetching steps for $userId on $dateKey: $e');
+                final data = stepSnapshot.data() as Map<String, dynamic>;
+                if (data.containsKey('count')) {
+                  localStep = int.tryParse(data['count']?.toString() ?? '0') ?? 0;
+                  totalSteps += localStep;
+                }
+              }
         }
+          try {
+            final userData = userDoc.data() as Map<String, dynamic>?;
+            usersWithSteps.add({
+              'userId': userId,
+              'name': userData?['name']?.toString() ?? 'Anonymous',
+              'totalSteps': totalSteps,
+            });
+          } catch (e) {
+            print('Error processing user data for userId $userId: $e');
+            usersWithSteps.add({
+              'userId': userId,
+              'name': 'Anonymous',
+              'totalSteps': totalSteps,
+            });
+          }
       }
-      return totalSteps;
+      /*
+      usersWithSteps.add({
+        'userId': 1,
+        'name': 'Rabbit',
+        'totalSteps': 10,
+      });
+      usersWithSteps.add({
+        'userId': 2,
+        'name': 'Monkey',
+        'totalSteps': 35,
+      });
+      usersWithSteps.add({
+        'userId': 3,
+        'name': 'Lion',
+        'totalSteps': 67,
+      });
+      usersWithSteps.add({
+        'userId': 4,
+        'name': 'Elephant',
+        'totalSteps': 90,
+      });
+      usersWithSteps.add({
+        'userId': 5,
+        'name': 'Mouse',
+        'totalSteps': 5,
+      });
+      */
+      // Sort users by steps in descending order and take top 10
+      usersWithSteps.sort((a, b) => b['totalSteps'].compareTo(a['totalSteps']));
+      return usersWithSteps.take(5).toList();
     } catch (e) {
       throw Exception('Error getting top users by steps: $e');
     }
   }
 
-  Future<List<Map<String, dynamic>>> getTopUsersBySteps(String filterGender, int limit) async {
-  try {
-    final DateTime today = DateTime.now();
-    final DateTime thirtyDaysAgo = today.subtract(const Duration(days: 30));
+  Future<List<Map<String, dynamic>>> getTopFeMaleUsersBySteps() async {
+    String filterGender = 'female';
+    int limit = 30;
+    try {
+      final DateTime today = DateTime.now();
+      final DateTime thirtyDaysAgo = today.subtract(Duration(days: limit - 1 ));
 
-    // Generate date keys for each day in the last 30 days
-    List<String> last30Days = List.generate(30, (index) {
-      DateTime date = thirtyDaysAgo.add(Duration(days: index));
-      return _getDateKeyGiven(date);
-    });
+      // Generate date keys for each day in the last 30 days
+      List<String> last30Days = List.generate(limit , (index) {
+        DateTime date = thirtyDaysAgo.add(Duration(days: index));
+        return _getDateKeyGiven(date);
+      });
 
-    List<Map<String, dynamic>> usersWithSteps = [];
+      List<Map<String, dynamic>> usersWithSteps = [];
 
-    // Query all users
-    QuerySnapshot userSnapshot = await usersCollection.get();
-    
-    for (var userDoc in userSnapshot.docs) {
-      int totalSteps = 0;
-      String userId = userDoc.id;
+      // Query all users
+      QuerySnapshot userSnapshot = await usersCollection.where('gender', isEqualTo: filterGender).get();
+      
+      for (var userDoc in userSnapshot.docs) {
+        int totalSteps = 0;
+        String userId = userDoc.id;
 
-      // Query daily steps for each user
-      for (String dateKey in last30Days) {
-        int localStep = 0;
-        DocumentSnapshot stepSnapshot = await walkStepsCollection
-            .doc(userId)
-            .collection('daily_steps')
-            .doc(dateKey)
-            .get();
-        
-        if (stepSnapshot.exists) {
-              final data = stepSnapshot.data() as Map<String, dynamic>;
-              if (data.containsKey('count')) {
-                localStep = int.tryParse(data['count']?.toString() ?? '0') ?? 0;
-                totalSteps += localStep;
+        // Query daily steps for each user
+        for (String dateKey in last30Days) {
+          int localStep = 0;
+          DocumentSnapshot stepSnapshot = await walkStepsCollection
+              .doc(userId)
+              .collection('daily_steps')
+              .doc(dateKey)
+              .get();
+          
+          if (stepSnapshot.exists) {
+                final data = stepSnapshot.data() as Map<String, dynamic>;
+                if (data.containsKey('count')) {
+                  localStep = int.tryParse(data['count']?.toString() ?? '0') ?? 0;
+                  totalSteps += localStep;
+                }
               }
-            }
-      }
-        try {
-          final userData = userDoc.data() as Map<String, dynamic>?;
-          usersWithSteps.add({
-            'userId': userId,
-            'name': userData?['name']?.toString() ?? 'Anonymous',
-            'totalSteps': totalSteps,
-          });
-        } catch (e) {
-          print('Error processing user data for userId $userId: $e');
-          usersWithSteps.add({
-            'userId': userId,
-            'name': 'Anonymous',
-            'totalSteps': totalSteps,
-          });
         }
-      // Add user with their total steps to the list
-      // usersWithSteps.add({
-      //   'userId': userId,
-      //   'name': userDoc.data()['name'] ?? 'Anonymous', // Assuming there's a 'name' field for user
-      //   'totalSteps': totalSteps,
-      // });
+          try {
+            final userData = userDoc.data() as Map<String, dynamic>?;
+            usersWithSteps.add({
+              'userId': userId,
+              'name': userData?['name']?.toString() ?? 'Anonymous',
+              'totalSteps': totalSteps,
+            });
+          } catch (e) {
+            print('Error processing user data for userId $userId: $e');
+            usersWithSteps.add({
+              'userId': userId,
+              'name': 'Anonymous',
+              'totalSteps': totalSteps,
+            });
+          }
+      }
+      /*
+      usersWithSteps.add({
+        'userId': 1,
+        'name': 'Rabbit',
+        'totalSteps': 10,
+      });
+      usersWithSteps.add({
+        'userId': 2,
+        'name': 'Monkey',
+        'totalSteps': 35,
+      });
+      usersWithSteps.add({
+        'userId': 3,
+        'name': 'Lion',
+        'totalSteps': 67,
+      });
+      usersWithSteps.add({
+        'userId': 4,
+        'name': 'Elephant',
+        'totalSteps': 90,
+      });
+      usersWithSteps.add({
+        'userId': 5,
+        'name': 'Mouse',
+        'totalSteps': 5,
+      });
+      */
+      // Sort users by steps in descending order and take top 10
+      usersWithSteps.sort((a, b) => b['totalSteps'].compareTo(a['totalSteps']));
+      return usersWithSteps.take(5).toList();
+    } catch (e) {
+      throw Exception('Error getting top users by steps: $e');
     }
-
-    // Sort users by steps in descending order and take top 10
-    usersWithSteps.sort((a, b) => b['totalSteps'].compareTo(a['totalSteps']));
-    return usersWithSteps.take(10).toList();
-  } catch (e) {
-    throw Exception('Error getting top users by steps: $e');
   }
-}
 
 
     // try {
@@ -252,12 +319,13 @@ class LeaderboardRepository {
 final leaderboardRepositoryProvider = Provider((ref) => LeaderboardRepository());
 
 // Modify the FutureProvider to accept two arguments
-final leaderboardDataProvider = FutureProvider.family<List<Map<String, dynamic>>, Map<String, dynamic>>((ref, args) async {
+final leaderboardMaleDataProvider = FutureProvider((ref) async {
   final leaderboardRepository = ref.watch(leaderboardRepositoryProvider);
-  return await leaderboardRepository.getTopUsersBySteps(args['gender'], args['limit']);
-}, name: 'leaderboardDataProvider');
+  return await leaderboardRepository.getTopMaleUsersBySteps();
+}, name: 'leaderboardMaleDataProvider');
 
-final userDataProvider = FutureProvider.family<int, Map<String, dynamic>>((ref, args) async {
+// Modify the FutureProvider to accept two arguments
+final leaderboardFeMaleDataProvider = FutureProvider((ref) async {
   final leaderboardRepository = ref.watch(leaderboardRepositoryProvider);
-  return await leaderboardRepository.getUserSteps(args['user'], args['limit']);
-}, name: 'userDataProvider');
+  return await leaderboardRepository.getTopFeMaleUsersBySteps();
+}, name: 'leaderboardFeMaleDataProvider');

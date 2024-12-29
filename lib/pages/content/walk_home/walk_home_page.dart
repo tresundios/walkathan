@@ -63,8 +63,37 @@ class _WalkHomePageState extends ConsumerState<WalkHomePage> {
             icon: const Icon(Icons.refresh),
           ),
         ],
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[
+                Colors.blue, // Start color
+                Colors.red, // End color
+              ],
+            ),
+          ),
+        ),
       ),
-      body: Align(
+      body: 
+      Container(
+        decoration: BoxDecoration(
+          // Adding the background image
+          image: DecorationImage(
+            image: AssetImage('assets/images/walkbg.png'), // Replace with your image path
+            fit: BoxFit.cover,
+          ),
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              Colors.blue,
+              Colors.red,
+            ],
+          )
+        ),
+        child: Align(
       alignment: FractionalOffset.center,
       child:      
       Container(
@@ -138,11 +167,16 @@ class _WalkHomePageState extends ConsumerState<WalkHomePage> {
                 ),
               ),
             ),
+            
             const SizedBox(height: 40),
                 OutlinedButton(
                   onPressed: () {
                     GoRouter.of(context).go('/home');
                   },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white, width: 2), // Gold border
+                    foregroundColor: Colors.white, // Text color
+                  ),
                   child: const Text(
                     'Home',
                     style: TextStyle(fontSize: 20),
@@ -154,6 +188,10 @@ class _WalkHomePageState extends ConsumerState<WalkHomePage> {
                   onPressed: () {
                     GoRouter.of(context).go('/leaderboard');
                   },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white, width: 2), // Gold border
+                    foregroundColor: Colors.white, // Text color
+                  ),
                   child: const Text(
                     'Leader Board',
                     style: TextStyle(fontSize: 20),
@@ -168,7 +206,7 @@ class _WalkHomePageState extends ConsumerState<WalkHomePage> {
       ),
     )
       
-      
+      ),
       
  
     );

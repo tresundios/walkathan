@@ -53,26 +53,59 @@ class _LeaderBoardPageState extends ConsumerState<LeaderBoardPage> {
             icon: const Icon(Icons.refresh),
           ),
         ],
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: <Color>[
+                Colors.blue, // Start color
+                Colors.red, // End color
+              ],
+            ),
+          ),
+        ),
       ),
       body: profileState.when(
         skipLoadingOnRefresh: false,
         data: (appUser) {
-          return Center(
+          return 
+          Container(
+        decoration: BoxDecoration(
+          // Adding the background image
+          image: DecorationImage(
+            image: AssetImage('assets/images/leaderhome.png'), // Replace with your image path
+            fit: BoxFit.cover,
+          ),
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              Colors.blue,
+              Colors.red,
+            ],
+          )
+        ),
+        child: 
+          Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   'Welcome ${appUser.name}',
-                  style: const TextStyle(fontSize: 24.0),
+                  style: const TextStyle(fontSize: 28.0, color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 40),
                 OutlinedButton(
                   onPressed: () {
                     GoRouter.of(context).go('/walkHome/$uid');
                   },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white, width: 2.0), // Bold border
+                  ),
                   child: const Text(
                     'Walkathan Home',
-                    style: TextStyle(fontSize: 20),
+                    style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   
                 ),
@@ -81,9 +114,12 @@ class _LeaderBoardPageState extends ConsumerState<LeaderBoardPage> {
                   onPressed: () {
                     GoRouter.of(context).go('/maleLeaderBoard');
                   },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white, width: 2.0), // Bold border
+                  ),
                   child: const Text(
                     'Top Mens',
-                    style: TextStyle(fontSize: 20),
+                    style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   
                 ),
@@ -92,14 +128,18 @@ class _LeaderBoardPageState extends ConsumerState<LeaderBoardPage> {
                   onPressed: () {
                     GoRouter.of(context).go('/femaleLeaderBoard');
                   },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.white, width: 2.0), // Bold border
+                  ),
                   child: const Text(
                     'Top Womens',
-                    style: TextStyle(fontSize: 20),
+                    style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   
                 ),
               ]
             )
+          ),
           );
         },
         error: (e, _) {

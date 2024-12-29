@@ -9,7 +9,6 @@ import '../../../constants/firebase_constants.dart';
 import './leader_board_provider.dart';
 
 class FeMaleBoardPage extends ConsumerStatefulWidget {
-
   const FeMaleBoardPage({super.key});
 
   @override
@@ -17,19 +16,12 @@ class FeMaleBoardPage extends ConsumerStatefulWidget {
 }
 
 class _FeMaleBoardPageState extends ConsumerState<FeMaleBoardPage> {
-  
-
-
 
   @override
   Widget build(BuildContext context) {
-    final numberOfDays = 3;
     final uid = fbAuth.currentUser!.uid;
     final profileState = ref.watch(profileProvider(uid));
-    //final maleLeaderboardState = ref.watch(leaderboardDataProvider, 'male');
-    final leaderBoardState = ref.watch(leaderboardDataProvider({'gender': 'female', 'limit': numberOfDays}));
-    //final femaleLeaderBoardState = ref.watch(leaderboardDataProvider({'gender': 'female', 'limit': numberOfDays}));
-    //final userStepState = ref.watch(userDataProvider({'user': uid, 'limit': numberOfDays}));
+    final leaderBoardState = ref.watch(leaderboardFeMaleDataProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -58,50 +50,38 @@ class _FeMaleBoardPageState extends ConsumerState<FeMaleBoardPage> {
       body: profileState.when(
         skipLoadingOnRefresh: false,
         data: (appUser) {
-          return Center(
+          return SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Top Women Contestants',
-                  style: const TextStyle(fontSize: 24.0),
+                const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text(
+                    'Top Women',
+                    style: TextStyle(fontSize: 24.0),
+                  ),
                 ),
-                const SizedBox(height: 40),
-                    Expanded(
-                      child: leaderBoardState.when(
-                        data: (leaderboardData) {
-                          return ListView.builder(
-                            itemCount: leaderboardData.length,
-                            itemBuilder: (context, index) {
-                              final entry = leaderboardData[index];
-                              return ListTile(
-                                title: Text(entry['name'] ?? 'Anonymous'),
-                                trailing: Text(entry['totalSteps'].toString()),
-                              );
-                            },
-                          );
-                        },
-                        error: (e, _) => Center(child: Text('Error loading leaderboard: $e')),
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                      ),
-                    ),
+                leaderBoardState.when(
+                  data: (leaderboardData) => _buildLeaderBoard(leaderboardData),
+                  error: (error, stackTrace) => Center(child: Text('Error loading leaderboard: $error')),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                ),
                 const SizedBox(height: 40),
                 OutlinedButton(
                   onPressed: () {
                     GoRouter.of(context).go('/walkHome/$uid');
                   },
                   child: const Text(
-                    'Walkathan Home',
+                    'Walkathon Home',
                     style: TextStyle(fontSize: 20),
                   ),
-                )
+                ),
               ],
             ),
           );
         },
         error: (e, _) {
           final error = e as CustomError;
-
           return Center(
             child: Text(
               'code: ${error.code}\nplugin: ${error.plugin}\nmessage: ${error.message}',
@@ -117,8 +97,22 @@ class _FeMaleBoardPageState extends ConsumerState<FeMaleBoardPage> {
           child: CircularProgressIndicator(),
         ),
       ),
-      
- 
+    );
+  }
+
+  Widget _buildLeaderBoard(List<Map<String, dynamic>> leaderboardData) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.5, // Adjust based on your UI needs
+      child: ListView.builder(
+        itemCount: leaderboardData.length,
+        itemBuilder: (context, index) {
+          final entry = leaderboardData[index];
+          return ListTile(
+            title: Text(entry['name'] ?? 'Anonymous'),
+            trailing: Text(entry['totalSteps'].toString()),
+          );
+        },
+      ),
     );
   }
 }
