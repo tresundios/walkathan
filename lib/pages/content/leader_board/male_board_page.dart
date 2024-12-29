@@ -1,25 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../../config/router/route_names.dart';
-import '../../../constants/firebase_constants.dart';
-import '../../../models/custom_error.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../repositories/auth_repository_provider.dart';
 import '../../../utils/error_dialog.dart';
-import 'home_provider.dart';
+import '../../../models/custom_error.dart';
+import '../home/home_provider.dart';
+import 'package:go_router/go_router.dart';
+import '../../../constants/firebase_constants.dart';
+import './leader_board_provider.dart';
 
-class HomePage extends ConsumerWidget {
-  const HomePage({super.key});
+class MaleBoardPage extends ConsumerStatefulWidget {
+  const MaleBoardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _MaleBoardPageState createState() => _MaleBoardPageState();
+}
+
+class _MaleBoardPageState extends ConsumerState<MaleBoardPage> {
+  final numberOfDays = 3;
+
+  @override
+  Widget build(BuildContext context) {
     final uid = fbAuth.currentUser!.uid;
     final profileState = ref.watch(profileProvider(uid));
+    final leaderBoardState = ref.watch(leaderboardDataProvider({'gender': 'male', 'limit': numberOfDays}));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Leader Board'),
+        backgroundColor: Colors.blue,
         actions: [
           IconButton(
             onPressed: () async {
@@ -43,38 +51,21 @@ class HomePage extends ConsumerWidget {
       body: profileState.when(
         skipLoadingOnRefresh: false,
         data: (appUser) {
-          return Center(
+          return SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Welcome ${appUser.name}',
-                  style: const TextStyle(fontSize: 24.0),
-                ),
-                const SizedBox(height: 20.0),
-                const Text(
-                  'Your Profile',
-                  style: TextStyle(fontSize: 24.0),
-                ),
-                const SizedBox(height: 10.0),
-                Text(
-                  'email: ${appUser.email}',
-                  style: const TextStyle(fontSize: 16.0),
-                ),
-                const SizedBox(height: 10.0),
-                Text(
-                  'id: ${appUser.id}',
-                  style: const TextStyle(fontSize: 16.0),
-                ),
-                const SizedBox(height: 40),
-                OutlinedButton(
-                  onPressed: () {
-                    GoRouter.of(context).goNamed(RouteNames.changePassword);
-                  },
-                  child: const Text(
-                    'Change Password',
-                    style: TextStyle(fontSize: 20),
+                const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Text(
+                    'Top Men',
+                    style: TextStyle(fontSize: 24.0),
                   ),
+                ),
+                leaderBoardState.when(
+                  data: (leaderboardData) => _buildLeaderBoard(leaderboardData),
+                  error: (error, stackTrace) => Center(child: Text('Error loading leaderboard: $error')),
+                  loading: () => const Center(child: CircularProgressIndicator()),
                 ),
                 const SizedBox(height: 40),
                 OutlinedButton(
@@ -86,23 +77,12 @@ class HomePage extends ConsumerWidget {
                     style: TextStyle(fontSize: 20),
                   ),
                 ),
-                const SizedBox(height: 40),
-                OutlinedButton(
-                  onPressed: () {
-                    GoRouter.of(context).go('/leaderBoard');
-                  },
-                  child: const Text(
-                    'Leader Board',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                )
               ],
             ),
           );
         },
         error: (e, _) {
           final error = e as CustomError;
-
           return Center(
             child: Text(
               'code: ${error.code}\nplugin: ${error.plugin}\nmessage: ${error.message}',
@@ -117,6 +97,22 @@ class HomePage extends ConsumerWidget {
         loading: () => const Center(
           child: CircularProgressIndicator(),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLeaderBoard(List<Map<String, dynamic>> leaderboardData) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.5, // Adjust based on your UI needs
+      child: ListView.builder(
+        itemCount: leaderboardData.length,
+        itemBuilder: (context, index) {
+          final entry = leaderboardData[index];
+          return ListTile(
+            title: Text(entry['name'] ?? 'Anonymous'),
+            trailing: Text(entry['totalSteps'].toString()),
+          );
+        },
       ),
     );
   }

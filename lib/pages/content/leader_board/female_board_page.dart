@@ -1,25 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../../config/router/route_names.dart';
-import '../../../constants/firebase_constants.dart';
-import '../../../models/custom_error.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../repositories/auth_repository_provider.dart';
 import '../../../utils/error_dialog.dart';
-import 'home_provider.dart';
+import '../../../models/custom_error.dart';
+import '../home/home_provider.dart';
+import 'package:go_router/go_router.dart';
+import '../../../constants/firebase_constants.dart';
+import './leader_board_provider.dart';
 
-class HomePage extends ConsumerWidget {
-  const HomePage({super.key});
+class FeMaleBoardPage extends ConsumerStatefulWidget {
+
+  const FeMaleBoardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _FeMaleBoardPageState createState() => _FeMaleBoardPageState();
+}
+
+class _FeMaleBoardPageState extends ConsumerState<FeMaleBoardPage> {
+  
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    final numberOfDays = 3;
     final uid = fbAuth.currentUser!.uid;
     final profileState = ref.watch(profileProvider(uid));
+    //final maleLeaderboardState = ref.watch(leaderboardDataProvider, 'male');
+    final leaderBoardState = ref.watch(leaderboardDataProvider({'gender': 'female', 'limit': numberOfDays}));
+    //final femaleLeaderBoardState = ref.watch(leaderboardDataProvider({'gender': 'female', 'limit': numberOfDays}));
+    //final userStepState = ref.watch(userDataProvider({'user': uid, 'limit': numberOfDays}));
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Leader Board'),
+        backgroundColor: Colors.blue,
         actions: [
           IconButton(
             onPressed: () async {
@@ -48,51 +63,35 @@ class HomePage extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Welcome ${appUser.name}',
+                  'Top Women Contestants',
                   style: const TextStyle(fontSize: 24.0),
                 ),
-                const SizedBox(height: 20.0),
-                const Text(
-                  'Your Profile',
-                  style: TextStyle(fontSize: 24.0),
-                ),
-                const SizedBox(height: 10.0),
-                Text(
-                  'email: ${appUser.email}',
-                  style: const TextStyle(fontSize: 16.0),
-                ),
-                const SizedBox(height: 10.0),
-                Text(
-                  'id: ${appUser.id}',
-                  style: const TextStyle(fontSize: 16.0),
-                ),
                 const SizedBox(height: 40),
-                OutlinedButton(
-                  onPressed: () {
-                    GoRouter.of(context).goNamed(RouteNames.changePassword);
-                  },
-                  child: const Text(
-                    'Change Password',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
+                    Expanded(
+                      child: leaderBoardState.when(
+                        data: (leaderboardData) {
+                          return ListView.builder(
+                            itemCount: leaderboardData.length,
+                            itemBuilder: (context, index) {
+                              final entry = leaderboardData[index];
+                              return ListTile(
+                                title: Text(entry['name'] ?? 'Anonymous'),
+                                trailing: Text(entry['totalSteps'].toString()),
+                              );
+                            },
+                          );
+                        },
+                        error: (e, _) => Center(child: Text('Error loading leaderboard: $e')),
+                        loading: () => const Center(child: CircularProgressIndicator()),
+                      ),
+                    ),
                 const SizedBox(height: 40),
                 OutlinedButton(
                   onPressed: () {
                     GoRouter.of(context).go('/walkHome/$uid');
                   },
                   child: const Text(
-                    'Walkathon Home',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                OutlinedButton(
-                  onPressed: () {
-                    GoRouter.of(context).go('/leaderBoard');
-                  },
-                  child: const Text(
-                    'Leader Board',
+                    'Walkathan Home',
                     style: TextStyle(fontSize: 20),
                   ),
                 )
@@ -118,6 +117,8 @@ class HomePage extends ConsumerWidget {
           child: CircularProgressIndicator(),
         ),
       ),
+      
+ 
     );
   }
 }

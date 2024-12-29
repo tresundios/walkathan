@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:walkathan/pages/content/leader_board/female_board_page.dart';
+import 'package:walkathan/pages/content/leader_board/male_board_page.dart';
 
 import '../../constants/firebase_constants.dart';
 import '../../pages/auth/reset_password/reset_password_page.dart';
@@ -126,6 +128,20 @@ GoRouter router(RouterRef ref) {
         name: RouteNames.leaderBoard,
         builder: (context, state) {
           return LeaderBoardPage();
+        },
+      ),
+      GoRoute(
+        path: '/maleLeaderBoard',
+        name: RouteNames.maleLeaderBoard,
+        builder: (context, state) {
+          return MaleBoardPage();
+        },
+      ),
+      GoRoute(
+        path: '/femaleLeaderBoard',
+        name: RouteNames.femaleLeaderBoard,
+        builder: (context, state) {
+          return FeMaleBoardPage();
         },
       ),
     ],

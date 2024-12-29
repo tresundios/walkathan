@@ -108,18 +108,18 @@ class WalkStepRepository {
   Future<int> getCumulativeSteps(String userId) async {
     try {
       DateTime today = DateTime.now();
-      DateTime tenDaysAgo = today.subtract(Duration(days: 30));
+      DateTime thirtyDaysAgo = today.subtract(Duration(days: 3));
 
       // Get date keys for the last 10 days
-      List<String> last10Days = List.generate(10, (index) {
-        DateTime date = tenDaysAgo.add(Duration(days: index));
+      List<String> last30Days = List.generate(10, (index) {
+        DateTime date = thirtyDaysAgo.add(Duration(days: index));
         return _getDateKey(date);
       });
 
       int totalSteps = 0;
 
       // Query the daily_steps sub-collection for the last 10 days
-      for (String dateKey in last10Days) {
+      for (String dateKey in last30Days) {
         final snapshot = await walkStepsCollection
             .doc(userId)
             .collection('daily_steps')

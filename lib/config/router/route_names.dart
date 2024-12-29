@@ -9,4 +9,6 @@ class RouteNames {
   static const firebaseError = 'firebaseError';
   static const walkHome = 'walkHome';
   static const leaderBoard = 'leaderBoard';
+  static const maleLeaderBoard = 'maleLeaderBoard';
+  static const femaleLeaderBoard = 'femaleLeaderBoard';
 }
