@@ -8,6 +8,7 @@ import '../../../utils/error_dialog.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/form_fields.dart';
 import 'signin_provider.dart';
+import '../../../providers/auth_provider.dart';
 
 class SigninPage extends ConsumerStatefulWidget {
   const SigninPage({super.key});
@@ -92,10 +93,25 @@ class _SigninPageState extends ConsumerState<SigninPage> {
                   ),
                   const SizedBox(height: 20.0),
                   CustomFilledButton(
-                    onPressed: signinState.maybeWhen(
-                      loading: () => null,
-                      orElse: () => _submit,
-                    ),
+                    // onPressed: signinState.maybeWhen(
+                    //   loading: () => null,
+                    //   orElse: () => _submit,
+                    // ),
+                    onPressed: () async {
+                      try {
+                        print("Cred Inputs");
+                        print(_emailController.text);
+                        print(_passwordController.text);
+
+                        await ref.read(authProvider).login(_emailController.text, _passwordController.text);
+                        // Navigate to home or dashboard after successful login
+                        //GoRouter.of(context).go('/home');
+                        //context.go('/home');
+                      } catch (e) {
+                        print(e);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+                      }
+                    },
                     fontSize: 20.0,
                     fontWeight: FontWeight.w600,
                     child: Text(

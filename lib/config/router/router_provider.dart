@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:walkathan/pages/content/leader_board/female_board_page.dart';
 import 'package:walkathan/pages/content/leader_board/male_board_page.dart';
+import 'package:walkathan/providers/auth_provider.dart';
 
 import '../../constants/firebase_constants.dart';
 import '../../pages/auth/reset_password/reset_password_page.dart';
@@ -23,37 +24,42 @@ part 'router_provider.g.dart';
 
 @riverpod
 GoRouter router(RouterRef ref) {
-  final authState = ref.watch(authStateStreamProvider);
+  //final authState = ref.watch(authStateStreamProvider);
 
   return GoRouter(
     initialLocation: '/splash',
     redirect: (context, state) {
-      if (authState is AsyncLoading<User?>) {
-        return '/splash';
+      // if (authState is AsyncLoading<User?>) {
+      //   return '/splash';
+      // }
+
+      // if (authState is AsyncError<User?>) {
+      //   return '/firebaseError';
+      // }
+
+      // final authenticated = authState.valueOrNull != null;
+
+      // final authenticating = (state.matchedLocation == '/signin') ||
+      //     (state.matchedLocation == '/signup') ||
+      //     (state.matchedLocation == '/resetPassword');
+
+      // if (authenticated == false) {
+      //   return authenticating ? null : '/signin';
+      // }
+
+      // if (!fbAuth.currentUser!.emailVerified) {
+      //   return '/verifyEmail';
+      // }
+
+      // final verifyingEmail = state.matchedLocation == '/verifyEmail';
+      // final splashing = state.matchedLocation == '/splash';
+
+      // return (authenticating || verifyingEmail || splashing) ? '/home' : null;
+      final isAuthenticated = ref.read(authProvider).isAuthenticated;
+      if (!isAuthenticated) {
+        return '/signin'; // Redirect to login if not authenticated
       }
-
-      if (authState is AsyncError<User?>) {
-        return '/firebaseError';
-      }
-
-      final authenticated = authState.valueOrNull != null;
-
-      final authenticating = (state.matchedLocation == '/signin') ||
-          (state.matchedLocation == '/signup') ||
-          (state.matchedLocation == '/resetPassword');
-
-      if (authenticated == false) {
-        return authenticating ? null : '/signin';
-      }
-
-      if (!fbAuth.currentUser!.emailVerified) {
-        return '/verifyEmail';
-      }
-
-      final verifyingEmail = state.matchedLocation == '/verifyEmail';
-      final splashing = state.matchedLocation == '/splash';
-
-      return (authenticating || verifyingEmail || splashing) ? '/home' : null;
+      return null; // No redirect needed
     },
     routes: [
       GoRoute(
