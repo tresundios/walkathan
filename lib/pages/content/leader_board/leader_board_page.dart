@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../repositories/auth_repository_provider.dart';
 import '../../../utils/error_dialog.dart';
 import '../../../models/custom_error.dart';
@@ -17,18 +17,13 @@ class LeaderBoardPage extends ConsumerStatefulWidget {
 }
 
 class _LeaderBoardPageState extends ConsumerState<LeaderBoardPage> {
-  
-
-
 
   @override
   Widget build(BuildContext context) {
-    final uid = fbAuth.currentUser!.uid;
+    final uid = supabaseClient.auth.currentUser!.id;
     final profileState = ref.watch(profileProvider(uid));
-    //final maleLeaderboardState = ref.watch(leaderboardDataProvider, 'male');
-    // final maleLeaderBoardState = ref.watch(leaderboardDataProvider({'gender': 'male', 'limit': 3}));
-    // final femaleLeaderBoardState = ref.watch(leaderboardDataProvider({'gender': 'female', 'limit': 3}));
-    // final userSteps = ref.watch(userDataProvider({'user': uid, 'limit': 3}));
+    final maleLeaderBoardState = ref.watch(leaderboardMaleDataProvider);
+    final femaleLeaderBoardState = ref.watch(leaderboardFeMaleDataProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -48,7 +43,8 @@ class _LeaderBoardPageState extends ConsumerState<LeaderBoardPage> {
           ),
           IconButton(
             onPressed: () {
-              ref.invalidate(profileProvider);
+              ref.invalidate(leaderboardMaleDataProvider);
+              ref.invalidate(leaderboardFeMaleDataProvider);
             },
             icon: const Icon(Icons.refresh),
           ),
@@ -59,22 +55,17 @@ class _LeaderBoardPageState extends ConsumerState<LeaderBoardPage> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: <Color>[
-                Colors.blue, // Start color
-                Colors.red, // End color
+                Colors.blue,
+                Colors.red,
               ],
             ),
           ),
         ),
       ),
-      body: profileState.when(
-        skipLoadingOnRefresh: false,
-        data: (appUser) {
-          return 
-          Container(
+      body: Container(
         decoration: BoxDecoration(
-          // Adding the background image
           image: DecorationImage(
-            image: AssetImage('assets/images/leaderhome.png'), // Replace with your image path
+            image: AssetImage('assets/images/leaderhome.png'),
             fit: BoxFit.cover,
           ),
           gradient: LinearGradient(
@@ -84,84 +75,133 @@ class _LeaderBoardPageState extends ConsumerState<LeaderBoardPage> {
               Colors.blue,
               Colors.red,
             ],
-          )
+          ),
         ),
-        child: 
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Welcome ${appUser.name}',
-                  style: const TextStyle(fontSize: 28.0, color: Colors.white, fontWeight: FontWeight.bold),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              profileState.when(
+                data: (appUser) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  child: Text(
+                    'Welcome ${appUser.name}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 28.0, color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                 ),
-                const SizedBox(height: 40),
-                OutlinedButton(
+                error: (e, _) => const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+              ),
+              const SizedBox(height: 10),
+              // Top Men Section
+              Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Top Men',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      maleLeaderBoardState.when(
+                        data: (data) => _buildLeaderBoard(data),
+                        error: (error, _) => Text('Error: $error', style: const TextStyle(color: Colors.red)),
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(20.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Top Women Section
+              Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Top Women',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      femaleLeaderBoardState.when(
+                        data: (data) => _buildLeaderBoard(data),
+                        error: (error, _) => Text('Error: $error', style: const TextStyle(color: Colors.red)),
+                        loading: () => const Padding(
+                          padding: EdgeInsets.all(20.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              Center(
+                child: OutlinedButton(
                   onPressed: () {
                     GoRouter.of(context).go('/walkHome/$uid');
                   },
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white, width: 2.0), // Bold border
+                    side: const BorderSide(color: Colors.white, width: 2.0),
+                    foregroundColor: Colors.white,
                   ),
                   child: const Text(
-                    'Walkathan Home',
-                    style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                    'Walkathon Home',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  
                 ),
-                const SizedBox(height: 40),
-                OutlinedButton(
-                  onPressed: () {
-                    GoRouter.of(context).go('/maleLeaderBoard');
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white, width: 2.0), // Bold border
-                  ),
-                  child: const Text(
-                    'Top Mens',
-                    style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  
-                ),
-                const SizedBox(height: 40),
-                OutlinedButton(
-                  onPressed: () {
-                    GoRouter.of(context).go('/femaleLeaderBoard');
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.white, width: 2.0), // Bold border
-                  ),
-                  child: const Text(
-                    'Top Womens',
-                    style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  
-                ),
-              ]
-            )
-          ),
-          );
-        },
-        error: (e, _) {
-          final error = e as CustomError;
-
-          return Center(
-            child: Text(
-              'code: ${error.code}\nplugin: ${error.plugin}\nmessage: ${error.message}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.red,
-                fontSize: 18,
               ),
-            ),
-          );
-        },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
-      
- 
+    );
+  }
+
+  Widget _buildLeaderBoard(List<Map<String, dynamic>> leaderboardData) {
+    if (leaderboardData.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(12.0),
+        child: Text('No data yet', style: TextStyle(color: Colors.grey)),
+      );
+    }
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: leaderboardData.length,
+      itemBuilder: (context, index) {
+        final entry = leaderboardData[index];
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: index == 0
+                ? Colors.amber
+                : index == 1
+                    ? Colors.grey[400]
+                    : index == 2
+                        ? Colors.brown[300]
+                        : Colors.blue[100],
+            child: Text(
+              '${index + 1}',
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ),
+          title: Text(entry['name'] ?? 'Anonymous'),
+          trailing: Text(
+            '${entry['totalSteps']} steps',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        );
+      },
     );
   }
 }

@@ -4,11 +4,11 @@ import '../constants/firebase_constants.dart';
 class UserRepository {
 
   Future<void> addUser(UserModel user) async {
-    await usersCollection.doc(user.uid).set(user.toJson());
+    await supabaseClient.from('users').upsert(user.toJson());
   }
 
   Future<List<UserModel>> getAllUsers() async {
-    var snapshot = await usersCollection.get();
-    return snapshot.docs.map((doc) => UserModel.fromJson(doc.data())).toList();
+    final data = await supabaseClient.from('users').select();
+    return data.map((row) => UserModel.fromJson(row)).toList();
   }
 }

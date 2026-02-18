@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../repositories/auth_repository_provider.dart';
 import '../../../utils/error_dialog.dart';
 import '../../../models/custom_error.dart';
@@ -19,7 +19,7 @@ class _FeMaleBoardPageState extends ConsumerState<FeMaleBoardPage> {
 
   @override
   Widget build(BuildContext context) {
-    final uid = fbAuth.currentUser!.uid;
+    final uid = supabaseClient.auth.currentUser!.id;
     final profileState = ref.watch(profileProvider(uid));
     final leaderBoardState = ref.watch(leaderboardFeMaleDataProvider);
 
@@ -81,10 +81,12 @@ class _FeMaleBoardPageState extends ConsumerState<FeMaleBoardPage> {
           );
         },
         error: (e, _) {
-          final error = e as CustomError;
+          final error = e is CustomError
+              ? e
+              : CustomError(code: 'error', message: e.toString(), plugin: '');
           return Center(
             child: Text(
-              'code: ${error.code}\nplugin: ${error.plugin}\nmessage: ${error.message}',
+              error.message,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.red,

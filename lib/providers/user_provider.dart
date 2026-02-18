@@ -4,8 +4,15 @@ import '../services/user_service.dart';
 
 final userServiceProvider = Provider<UserService>((ref) => UserService());
 
-final userProvider = StateProvider<UserModel?>((ref) => null);
+class UserNotifier extends Notifier<UserModel?> {
+  @override
+  UserModel? build() => null;
 
-final userListProvider = FutureProvider<List<UserModel>>((ref) {
+  void setUser(UserModel? user) => state = user;
+}
+
+final userProvider = NotifierProvider<UserNotifier, UserModel?>(UserNotifier.new);
+
+final userListProvider = FutureProvider<List<UserModel>>((ref) async {
   return ref.watch(userServiceProvider).getAllUsers();
 });
